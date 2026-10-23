@@ -1,6 +1,7 @@
 from dataclasses import asdict
 import datetime
 import json
+import secrets
 from typing import Any, Iterable, Literal
 from sqlalchemy import (
     JSON,
@@ -45,6 +46,15 @@ class UserTable(Base):
     extra: Mapped[dict[str, Any]] = mapped_column(
         JSON(), nullable=True, default_factory=dict
     )
+
+    @classmethod
+    def insert_one(cls, item: dict[str, Any]):
+        item = dict(item)
+        extra = dict(item.get("extra") or {})
+        if not (extra.get("workspaceIssuer") and extra.get("workspaceSubject")):
+            extra.setdefault("musicPrincipal", secrets.token_hex(32))
+        item["extra"] = extra
+        return super().insert_one(item)
 
     @classmethod
     def get_all(cls):
@@ -222,8 +232,9 @@ class FavoritesTable(Base):
         return next(
             cls.execute(
                 delete(cls).where(
-                    (cls.hash == item["hash"])
-                    | (cls.hash == f"{item['type']}_{item['hash']}")
+                    ((cls.hash == item["hash"])
+                    | (cls.hash == f"{item['type']}_{item['hash']}"))
+                    & (cls.userid == get_current_userid())
                 ),
                 commit=True,
             )
@@ -431,6 +442,12 @@ class PlaylistTable(Base):
     extra: Mapped[dict[str, Any]] = mapped_column(
         JSON(), nullable=True, default_factory=dict
     )
+
+    @classmethod
+    def insert_one(cls, item: dict[str, Any]):
+        item = dict(item)
+        item["extra"] = {**(item.get("extra") or {}), "musicShareKey": secrets.token_hex(32)}
+        return super().insert_one(item)
 
     @classmethod
     def get_all(cls, current_user: bool = True):

@@ -1,0 +1,29 @@
+Page Listening
+  Row variant=topbar
+    Image src="./logo.svg" alt="My Music" width=40 height=40
+    Spacer
+    Button icon=House label=Home variant=home action=home
+    Input name=search placeholder="What do you want to play?" label="Search music" variant=global-search
+    Spacer
+    Button icon=UsersRound label="Shared with you" variant=icon action=shared
+    Button icon=Settings label=Settings variant=icon action=settings
+    Button variant=avatar action=account "$initials"
+  Row variant=workspace
+    Stack variant=library
+      Row variant=library-heading
+        Icon name=LibraryBig size=23
+        Heading level=2 "Your Library"
+        Spacer
+        Button icon=Plus label=Create variant=create action=create
+      Section id=library
+    Section id=content
+    Section id=nowplaying
+  Section id=player
+  Row variant=mobile-nav
+    Button icon=House label=Home action=home
+    Button icon=Search label=Search action=search
+    Button icon=LibraryBig label="Your Library" action=library
+    Button icon=UsersRound label=Shared action=shared
+  Section id=modal
+  If condition=$message
+    Alert "$message"

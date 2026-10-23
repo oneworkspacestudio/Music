@@ -50,7 +50,8 @@ def test_signed_oidc_and_account_boundary(tmp_path, monkeypatch):
     try:
         assert get("/healthz").status_code==200
         assert b"Sign in with MyAccounts" in get("/").data
-        assert get("/img/private.jpg").status_code==401
+        assert get("/img/thumbnail/private.webp").status_code==401
+        assert get("/studio/bootstrap").status_code==401
         assert get("/auth/myaccounts/callback?state=wrong&code=fake").status_code==401
         def login():
             link = get("/auth/myaccounts/login")
@@ -77,5 +78,16 @@ def test_signed_oidc_and_account_boundary(tmp_path, monkeypatch):
         # The issued cookie cannot be replayed as a first-user/bootstrap bypass.
         from swingmusic.config import UserConfig
         assert UserConfig().rootDirs==[(tmp_path/"files/Music").resolve().as_posix()]
+        from http.cookies import SimpleCookie
+        issued = SimpleCookie()
+        for cookie in cookies:
+            issued.load(cookie)
+        signed_headers = {"Authorization": "Bearer " + issued["access_token_cookie"].value}
+        assert client.get("/studio/bootstrap", headers=signed_headers).status_code == 200
+        from swingmusic.db.userdata import UserTable
+        UserTable.remove_by_username(user.username)
+        UserTable.insert_one({"id": user.id, "username": "replacement", "password": "synthetic", "roles": ["user"], "extra": {"workspaceIssuer": issuer, "workspaceSubject": "replacement"}})
+        denied = client.get("/studio/bootstrap", headers=signed_headers)
+        assert denied.status_code == 401
     finally:
         server.shutdown()

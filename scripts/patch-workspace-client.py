@@ -12,7 +12,7 @@ def patch(name, old, new):
     path.write_text(text.replace(old, new), encoding="utf-8")
 
 patch("src/config.ts", "return ''", "return window.location.pathname.replace(/\\/$/, '')")
-patch("src/router/index.ts", "createWebHashHistory(import.meta.env.BASE_URL)", "createWebHashHistory(window.location.pathname)")
+patch("src/router/index.ts", "createWebHashHistory(import.meta.env.BASE_URL)", "createWebHashHistory(window.location.pathname + window.location.search)")
 for file in ["src/stores/events.ts", "src/stores/tracker.ts", "src/stores/player.ts"]:
     path = root / file
     text = path.read_text(encoding="utf-8")
@@ -51,6 +51,9 @@ patch("src/views/HomeView/main.vue", "getGreetings(auth.user.username)", "getGre
 # Use the canonical endpoint directly, including for clients that cached an old
 # permanent redirect before the reverse proxy preserved the mounted prefix.
 patch("src/requests/home.ts", "paths.api.home.base + '?limit='", "paths.api.home.base + '/?limit='")
+# The preserved standalone settings route requires a title for every category.
+patch("src/settings/general/index.ts", "// title: 'General',", "title: 'General',")
+patch("src/settings/index.ts", "export default [general, profile, pairing, accounts, library, audio, plugins, about]", "const categories = [general, profile, pairing, accounts, library, audio, plugins, about];\nconst names = ['General', 'Profile', 'Pairing', 'Accounts', 'Library', 'Audio', 'Plugins', 'About'];\ncategories.forEach((category, i) => { if (!category.title) category.title = names[i] });\nexport default categories")
 
 # The PWA caches its own index rather than the proxy-injected HTML. Keep the
 # suite switcher on that shell too; standalone root installations do not load it.

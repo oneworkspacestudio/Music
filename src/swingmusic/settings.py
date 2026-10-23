@@ -206,6 +206,14 @@ class AssetHandler:
         if client_version == app_version:
             return
 
+        if getattr(sys, "frozen", False):
+            # The Workspace executable owns its complete UI. An upstream client
+            # download would discard prefix, identity and sharing integration.
+            raise RuntimeError(
+                f"Packaged My Music UI version {client_version!r} does not match "
+                f"the executable {app_version!r}; reinstall the verified package."
+            )
+
         log.info(
             "Client version %r does not match app version %r, refreshing client...",
             client_version,
@@ -620,6 +628,10 @@ class Metadata:
 
     @classproperty
     def version(self) -> str:
+        if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+            bundled = Path(sys._MEIPASS) / "version.txt"
+            if bundled.is_file():
+                return bundled.read_text(encoding="utf-8").strip()
         version = metadata.version("swingmusic")
 
         if version == "0.0.0":

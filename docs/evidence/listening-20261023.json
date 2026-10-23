@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "version": "3.0.1-workspace.1",
+  "exeSHA256": "a07818b327269e0bf09ba7ad42c9de13aa7c6b8fbb3387c59564be30d8c91833",
+  "pythonTests": {
+    "passed": 3,
+    "warnings": 31,
+    "coverage": [
+      "Real SQLite/JWT ownership, CSRF, issuer, revoke, independent likes",
+      "Deleted user and playlist ID reuse",
+      "Production JWT lookup rejects recycled user ID",
+      "Legacy playlist migration for non-first users",
+      "Signed OIDC state/nonce/PKCE/audience",
+      "Frozen UI version mismatch fails closed"
+    ]
+  },
+  "native": {
+    "checks": [
+      "Exact Windows executable indexes tagged synthetic MP3 from managed Music folder",
+      "Embedded player plays/seeks/pauses real MP3 and persists per-user listening history",
+      "Retained classic APIs cannot delete another account playlist or remove its saved song",
+      "Three independent signed OIDC sessions: read-only sharing, edit denial, unrelated account denial and revocation",
+      "Native embedded local lyrics and responsive phone player",
+      "Original advanced settings retained under authenticated classic entry"
+    ],
+    "errors": [],
+    "exeSHA256": "a07818b327269e0bf09ba7ad42c9de13aa7c6b8fbb3387c59564be30d8c91833",
+    "signedOIDC": true,
+    "syntheticOnly": true,
+    "physicalPhone": false
+  },
+  "standalone": {
+    "checks": [
+      "Fresh standalone account creation",
+      "Authorized folder indexing and actual MP3 playback",
+      "Prominent source link",
+      "Sign out and local-password sign in"
+    ],
+    "errors": [],
+    "exeSHA256": "a07818b327269e0bf09ba7ad42c9de13aa7c6b8fbb3387c59564be30d8c91833",
+    "syntheticOnly": true
+  },
+  "browser": {
+    "checks": [
+      "Actual audio playback and seeking under /music prefix",
+      "Cross-account shared playback, no edit controls, unrelated user denied and revocation enforced",
+      "Complete song library view can be shared",
+      "Desktop and phone home/playlist/song screens, local lyrics, persistent mini-player and no horizontal overflow",
+      "Playlist creation and server persistence"
+    ],
+    "errors": [],
+    "syntheticOnly": true
+  },
+  "uiAssets": {
+    "index-BFD6vdYQ.js": "6ff06ee20896291bfcc07a8f85911bac0cc362a34a42f568bfa8b1c514dd2a22",
+    "index-DGkEK1hC.css": "cd27f0c9febdb2357f5ad938d748e8f15a03236d32fd0989636e34176377dcf3"
+  },
+  "limits": {
+    "physicalPhoneTested": false,
+    "rebootTested": false,
+    "cleanHostTested": false,
+    "signedExecutable": false,
+    "customDefenderScanCompleted": false
+  }
+}

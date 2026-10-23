@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none" role="img" aria-labelledby="music-title">
+<title id="music-title">Music</title>
+<defs>
+<linearGradient id="music-stem" x1="134" y1="67" x2="155" y2="196" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#009D8D"/><stop offset="0.55" stop-color="#16B99E"/><stop offset="1" stop-color="#55DBBC"/></linearGradient>
+<linearGradient id="music-flag" x1="139" y1="16" x2="222" y2="106" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#91EFDB"/><stop offset="0.5" stop-color="#43CFB2"/><stop offset="1" stop-color="#00A992"/></linearGradient>
+<linearGradient id="music-note-head" x1="53" y1="122" x2="143" y2="228" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#7985FF"/><stop offset="0.36" stop-color="#5363F5"/><stop offset="0.73" stop-color="#3736CF"/><stop offset="1" stop-color="#211571"/></linearGradient>
+</defs>
+<rect x="134" y="61" width="22" height="129" rx="0" fill="url(#music-stem)"/>
+<path d="M134 29C134 18 142 12 153 18L213 51C222 56 226 63 226 74V98C226 109 218 113 210 108L151 76C144 72 138 73 134 78Z" fill="url(#music-flag)"/>
+<circle cx="94" cy="178" r="62" fill="url(#music-note-head)"/>
+<path d="M39 150C51 127 73 116 96 117" fill="none" stroke="#CED7FF" stroke-opacity="0.2" stroke-width="1" stroke-linecap="round"/>
+</svg>

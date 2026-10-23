@@ -9,6 +9,9 @@ listening history, thumbnails and indexes stay in its separate private data.
 All permitted music users share this library. FileBrowser source restrictions
 do not automatically become per-track Swing Music permissions.
 
+The current listening preview adds read-only playlist, Liked Songs and library
+view sharing with signed-in MyAccounts members. See [sharing and player details](docs/LISTENING.md).
+
 Workspace installs and supervises the separate executable and registers a
 dedicated MyAccounts client automatically. It supplies secrets through the child
 environment. The public callback is `/music/auth/myaccounts/callback`; the HTTPS
@@ -60,6 +63,13 @@ from imageio-ffmpeg 0.6.0 is bundled for playback/transcoding and is GPLv3; reta
 its notices/source links. Swing Music retains AGPLv3; the pinned webclient retains its MIT license.
 No premium licensing checks are bypassed. The public-source settings endpoint
 handles the absence of optional premium code.
+
+The build now compiles `web/` (React/AUI) and retains the pinned upstream client
+as an advanced-settings entry. `scripts/package-client.py` merges assets,
+rebuilds compressed copies and omits upstream Apple system fonts. The new UI uses
+ordinary system fonts. Additional browser notices are in
+[LISTENING-LICENSES.txt](docs/LISTENING-LICENSES.txt). `-Environment` can reuse a
+prepared build-only virtual environment. Node/npm/Python are not runtime installs.
 
 The Windows server uses Waitress to avoid frozen multiprocess-server recursion.
 Upstream multiprocessing audio parsing retains `freeze_support()` in the launcher.

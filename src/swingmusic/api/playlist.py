@@ -381,6 +381,8 @@ def remove_playlist(path: PlaylistIDPath):
     """
     Delete playlist
     """
+    if PlaylistTable.get_by_id(path.playlistid) is None:
+        return {"error": "Playlist not found"}, 404
     PlaylistTable.remove_one(path.playlistid)
     playlistlib.cleanup_playlist_images()
     return {"msg": "Done"}, 200

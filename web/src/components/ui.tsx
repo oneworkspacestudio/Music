@@ -1,0 +1,16 @@
+import React,{createContext,useContext} from 'react';
+import {Check,Music2,Heart,House,LibraryBig,UsersRound,Settings,Plus,Search,Pin,Play,Pause,AudioLines,Clock3,Ellipsis,ArrowLeft,CircleUserRound,Shuffle,UserRoundPlus,LockKeyhole,Download,CircleAlert,LoaderCircle,CirclePlus,CircleCheck,X,ListMusic,Volume2,VolumeX,Maximize,PanelRight,MicVocal,SkipBack,SkipForward,Repeat,Repeat1} from 'lucide-react';
+const Icons={Check,Music2,Heart,House,LibraryBig,UsersRound,Settings,Plus,Search,Pin,Play,Pause,AudioLines,Clock3,Ellipsis,ArrowLeft,CircleUserRound,Shuffle,UserRoundPlus,LockKeyhole,Download,CircleAlert,LoaderCircle,CirclePlus,CircleCheck,X,ListMusic,Volume2,VolumeX,Maximize,PanelRight,MicVocal,SkipBack,SkipForward,Repeat,Repeat1};
+const h=React.createElement;
+export const UI=createContext<any>({widgets:{},search:'',searchMusic:()=>{}});
+export const Icon=(p:any)=>h((Icons as any)[p.name]||Icons.Music2,{size:p.size||22,strokeWidth:1.8,className:p.className,'aria-hidden':true});
+export const Page=(p:any)=>h('main',{className:'app'},p.children);
+export const Row=(p:any)=>h('div',{className:'row '+(p.variant||'')},p.children);
+export const Stack=(p:any)=>h('aside',{className:p.variant},p.children);
+export const Spacer=()=>h('span',{className:'spacer'});
+export const Heading=(p:any)=>h('h'+(p.level||2),{},p.children);
+export const Image=(p:any)=>h('img',p);
+export const Button=(p:any)=>h('button',{className:'button '+(p.variant||''),onClick:p.onClick,'aria-label':p.label||undefined,title:p.label},p.icon?h(Icon,{name:p.icon}):null,p.label?h('span',{},p.label):p.children);
+export const Input=(p:any)=>{const ui=useContext(UI);return h('div',{className:p.variant},h(Icon,{name:'Search'}),h('input',{'aria-label':p.label,placeholder:p.placeholder,value:ui.search,onChange:(e:any)=>ui.searchMusic(e.target.value)}))};
+export const Section=(p:any)=>{const ui=useContext(UI);return ui.widgets[p.id]||null};
+export const Alert=(p:any)=>h('div',{className:'toast',role:'status','aria-live':'polite'},p.children);

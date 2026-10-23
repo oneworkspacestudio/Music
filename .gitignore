@@ -9,3 +9,6 @@ __pycache__/
 *.exe
 *.dpapi
 *.log
+/web/node_modules/
+/web/dist/
+/web/src/generated/

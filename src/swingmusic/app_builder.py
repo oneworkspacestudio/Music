@@ -63,11 +63,25 @@ def config_jwt(web):
     @jwt.user_lookup_loader
     def user_lookup_callback(_jwt_header, jwt_data):
         identity = jwt_data["sub"]
+        if not isinstance(identity, dict) or type(identity.get("id")) is not int:
+            return None
         userid = identity["id"]
         user = UserTable.get_by_id(userid)
 
         if user:
+            from swingmusic.listening import principal
+            claimed, actual = principal(identity), principal(user)
+            if not claimed or claimed != actual:
+                return None
             return user.todict()
+
+    @jwt.user_lookup_error_loader
+    def unavailable_user(_header, _data):
+        from flask import jsonify
+        from flask_jwt_extended import unset_jwt_cookies
+        response = jsonify(msg="Sign in again to continue")
+        unset_jwt_cookies(response)
+        return response, 401
 
 
 def load_endpoints(web: OpenAPI):
@@ -206,7 +220,7 @@ def get_webclient():
     """
     Serves the index.html file at `client/index.html`.
     """
-    res = app.send_static_file("index.html")
+    res = app.send_static_file("classic.html" if request.args.get("classic") == "1" else "index.html")
     if not GeneralStore.onboarding_complete:
         res.set_cookie(
             "x-root-dirs-set", "true" if GeneralStore.root_dirs_set else "false"
@@ -300,6 +314,9 @@ def build() -> OpenAPI:
     config_jwt(app)
     load_endpoints(app)
     load_plugins(app)
+
+    from swingmusic.listening import install as install_listening
+    install_listening(app)
 
     from swingmusic.myaccounts import install
     install(app)
