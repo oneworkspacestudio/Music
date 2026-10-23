@@ -1,0 +1,65 @@
+{
+  "exactTestedBinaryInstalled": true,
+  "identityAndCredentialsRetained": true,
+  "musicSHA256": "a07818b327269e0bf09ba7ad42c9de13aa7c6b8fbb3387c59564be30d8c91833",
+  "musicVersion": "3.0.1-workspace.1",
+  "normalBackedUpUpdate": true,
+  "otherAppContractsAndPackagesRetained": true,
+  "ownerConfigurationRetained": true,
+  "schema": 1,
+  "workspaceVersion": "0.3.0-preview.75",
+  "normalTransactionComplete": true,
+  "localHealth": "ok",
+  "runningServices": 25,
+  "servedUIAssetsMatch": {
+    "index-BFD6vdYQ.js": true,
+    "index-DGkEK1hC.css": true
+  },
+  "serviceWorkerIdentityAndGzipMatch": true,
+  "publicUnauthenticatedChecks": {
+    "/healthz": {
+      "status": 200,
+      "verified": true
+    },
+    "/music/healthz": {
+      "status": 401,
+      "verified": false
+    },
+    "/music/assets/index-BFD6vdYQ.js": {
+      "status": 401,
+      "verified": false
+    }
+  },
+  "testServersStopped": true,
+  "taskBuildCacheRemoved": true,
+  "publication": {
+    "tag": "v3.0.1-workspace.1",
+    "assetCount": 14,
+    "publicIndexSizesAndSHA256Matched": true,
+    "unauthenticatedSelectionMatched": true,
+    "publicExecutableDownloadedAndSHA256Matched": true,
+    "sourceCommit": "6ead5f5606cea6c427aeb6f5208b1825f3053637",
+    "channelCommit": "aaebd5f"
+  },
+  "publicBrowser": {
+    "host": "accounts.m8e.co.uk",
+    "path": "/login/oauth/authorize",
+    "title": "MyAccounts",
+    "anonymousBrowser": true,
+    "status": 200,
+    "signInVisible": false,
+    "challengeAttempted": false,
+    "authenticationPage": true,
+    "healthStatus": 200,
+    "allServicesRunning": true,
+    "scriptStatus": 401,
+    "servedScriptSHA256Matches": false
+  },
+  "publicMusicAuthenticationRequired": true,
+  "notes": [
+    "Public Music assets return 401 without Workspace authentication; this is expected.",
+    "Anonymous public browser reaches MyAccounts sign-in; public health reports every service running.",
+    "Normal cleanup retained newest verified recovery copy; some older files were kept for cleanup attention.",
+    "No live owner identities or media were functional test fixtures."
+  ]
+}
