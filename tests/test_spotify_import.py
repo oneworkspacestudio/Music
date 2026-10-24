@@ -7,6 +7,44 @@ from types import SimpleNamespace
 import pytest
 
 
+def test_rare_song_search_and_failure_messages(monkeypatch):
+    from swingmusic import spotify_import as s
+    track={'title':'My Only Only','artist':'Fortune The Voice','duration':173}
+    exact={'id':'0TapMXMuuGI','title':'My Only Only','uploader':'Fortune The Voice - Topic','duration':173}
+    unrelated={'id':'2Ef7JtTqXOE','title':'Jimmy Fortune sings My Only Love','uploader':'Country Road TV','duration':231}
+    calls=[]
+    def search(args,*_):
+        calls.append(args[-1])
+        return json.dumps({'entries':[exact] if '"My Only Only"' in args[-1] else [unrelated]})
+    monkeypatch.setattr(s,'run_tool',search)
+    stop=threading.Event()
+    assert s.search_audio(track,['tool'],stop)==exact
+    assert calls==['ytsearch5:"My Only Only" "Fortune The Voice"']
+    # Distributor suffixes also work for short names and short song titles.
+    assert s.choose_match({'title':'Hello','artist':'Adele','duration':295},[
+        {'id':'abcdefghijk','title':'Hello (Official Audio)','uploader':'Adele - Topic','duration':295}
+    ])['id']=='abcdefghijk'
+    assert s.choose_match({'title':'Baby','artist':'Justin Bieber, Ludacris','duration':214},[
+        {'id':'abcdefghijk','title':'Justin Bieber - Baby ft. Ludacris (Official Music Video)','uploader':'JustinBieberVEVO','duration':214}
+    ])['id']=='abcdefghijk'
+    assert s.choose_match({'title':'APT.','artist':'ROSÉ, Bruno Mars','duration':170},[
+        {'id':'abcdefghijk','title':'ROSÉ & Bruno Mars - APT. (Official MV)','uploader':'ROSÉ','duration':170}
+    ])['id']=='abcdefghijk'
+    # Fallback runs only when the first query cannot yield a confident match.
+    replies=iter([json.dumps({'entries':[unrelated]}),json.dumps({'entries':[exact]})])
+    monkeypatch.setattr(s,'run_tool',lambda *_:next(replies))
+    assert s.search_audio(track,['tool'],stop)==exact
+    for response,message in [(json.dumps({'entries':[unrelated]}),'right title, artist and duration'),
+                              ('<html>upstream error</html>','unreadable response'),
+                              ('{"entries":{}}','unreadable response')]:
+        monkeypatch.setattr(s,'run_tool',lambda *_,value=response:value)
+        with pytest.raises(s.ImportProblem,match=message):s.search_audio(track,['tool'],stop)
+    for change in ({'duration':300},{'title':'My Only Only (Karaoke)'},{'uploader':'Another Artist'}):
+        with pytest.raises(s.ImportProblem):s.choose_match(track,[{**exact,**change}])
+    stop.set()
+    with pytest.raises(s.ImportCancelled):s.search_audio(track,['tool'],stop)
+
+
 def test_metadata_and_matching_boundaries(monkeypatch):
     from swingmusic import spotify_import as s
     valid="https://open.spotify.com/playlist/"+"a"*22

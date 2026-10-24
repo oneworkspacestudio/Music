@@ -5,7 +5,7 @@ import {mkdir,readFile,writeFile,readdir} from 'node:fs/promises';
 import {chromium,expect} from '@playwright/test';
 
 const exe=process.env.MY_MUSIC_QA_EXE,out=process.env.MY_MUSIC_QA_OUTPUT,music=process.env.MY_MUSIC_QA_MEDIA,root=process.env.MY_MUSIC_QA_DATA;
-if(!exe||!out||!music||!(root?.startsWith('C:/Projects/.cache/music-listening-20261023/')||root?.startsWith('C:/Projects/.cache/music-spotify-20261024/')))throw Error('Set explicit executable/output/media and a task-owned new NTFS data root');
+if(!exe||!out||!music||!(root?.startsWith('C:/Projects/.cache/music-listening-20261023/')||root?.startsWith('C:/Projects/.cache/music-spotify-20261024/')||root?.startsWith('C:/Projects/.cache/music-spotify-match-20261024/')))throw Error('Set explicit executable/output/media and a task-owned new NTFS data root');
 await mkdir(root,{recursive:true});await mkdir(root+'/temp',{recursive:true});await mkdir(out,{recursive:true});
 const origin='http://localhost:39125',issuer='http://localhost:39126',clientID='music-native-qa',clientSecret=randomBytes(24).toString('hex'),codes=new Map(),checks=[],errors=[];
 const {privateKey,publicKey}=generateKeyPairSync('rsa',{modulusLength:2048}),jwk={...publicKey.export({format:'jwk'}),kid:'native-fixture',use:'sig',alg:'RS256'};

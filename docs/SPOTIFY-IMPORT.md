@@ -51,6 +51,13 @@ sign-in requirements or service availability can prevent a download; these show
 as per-song failures and can be retried later. Source builds need the tools
 prepared by `scripts/prepare-import-tools.py` or available on PATH.
 
+Audio matching first searches quoted song and primary-artist names, then uses
+a broader fallback. Topic/VEVO channel labels, official audio/video labels and
+credited featured artists do not prevent a match. Artist, title, version and
+duration checks still apply. Search-response errors and unavailable matches have
+distinct messages. After updating, use **Resume unfinished songs** on an existing
+partial import; completed songs stay in the same playlist.
+
 ## Engineering checks
 
 Imports use the existing signed account identity, same-origin/CSRF protection

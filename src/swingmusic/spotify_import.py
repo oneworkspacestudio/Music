@@ -141,18 +141,33 @@ def choose_match(track, entries):
         length = entry.get("duration")
         if not isinstance(length, (int, float)) or abs(length - track["duration"]) > max(10, track["duration"] * .07):
             continue
-        title = normal(entry.get("title") or "")
-        wanted, artist = normal(track["title"]), normal(track["artist"].split(",")[0])
+        raw_title = entry.get("title") or ""
+        if not isinstance(raw_title, str):
+            continue
+        # Distributor labels are presentation, not part of the song title.
+        title = normal(re.sub(r"[\[(](?:official\s+)?(?:audio|music video|video|mv|lyric video|lyrics|visualizer)(?:\s+(?:hd|hq|4k))?[\])]", "", raw_title, flags=re.I))
+        wanted = normal(track["title"])
+        artists = [normal(a) for a in track["artist"].split(",") if normal(a)]
         if any(word in title.split() and word not in wanted.split() for word in ("cover", "karaoke", "remix", "live", "sped", "slowed", "instrumental", "acoustic")):
             continue
-        title_score = max(similarity(title, wanted), similarity(title.replace(artist, ""), wanted))
-        artist_score = max(similarity(artist, entry.get("uploader") or ""), 1.0 if artist and artist in title else 0)
+        # Remove only credited artist names and credit markers; retain version
+        # words such as remix/live/radio edit when comparing the recording.
+        song_title = " "+title+" "
+        for artist in sorted(artists, key=len, reverse=True):
+            song_title = re.sub(r"(?<!\w)"+re.escape(artist)+r"(?!\w)", " ", song_title)
+        song_title = re.sub(r"\b(?:ft|feat|featuring)\b", " ", song_title)
+        title_score = max(similarity(title, wanted), similarity(song_title, wanted))
+        uploader = entry.get("uploader") or entry.get("channel") or ""
+        if not isinstance(uploader, str):
+            continue
+        uploader = re.sub(r"\s*-\s*Topic$|VEVO$", "", uploader, flags=re.I).strip()
+        artist_score = max((max(similarity(artist, uploader), 1.0 if re.search(r"(?<!\w)"+re.escape(artist)+r"(?!\w)", title) else 0) for artist in artists), default=0)
         if title_score < .65 or artist_score < .65:
             continue
         score = title_score * .65 + artist_score * .25 + (1 - abs(length-track["duration"])/max(1,track["duration"])) * .1
         candidates.append((score, entry))
     if not candidates:
-        raise ImportProblem("No confident audio match found. Add this song from your own files.")
+        raise ImportProblem("No audio match with the right title, artist and duration was found. Retry later or add this song from your own files.")
     return max(candidates, key=lambda pair: pair[0])[1]
 
 
@@ -196,15 +211,40 @@ def run_tool(arguments, cancelled, timeout):
             return data.decode("utf-8", "replace")
 
 
+def search_audio(track, common, cancelled):
+    # Unquoted queries can silently autocorrect rare artist/title combinations
+    # into popular unrelated songs. Exact terms find distributor Topic uploads.
+    title = track["title"].replace('"', ' ')
+    artist = track["artist"].split(",")[0].replace('"', ' ')
+    queries = [f'"{title}" "{artist}"', artist+" "+track["title"]+" audio"]
+    readable = False
+    for query in queries:
+        if cancelled.is_set():
+            raise ImportCancelled()
+        result = run_tool(common + ["--flat-playlist", "--dump-single-json", "ytsearch5:"+query], cancelled, 75)
+        try:
+            data = json.loads(result)
+        except (ValueError, TypeError):
+            continue
+        entries = data.get("entries") if isinstance(data, dict) else None
+        if not isinstance(entries, list):
+            continue
+        readable = True
+        try:
+            return choose_match(track, entries)
+        except ImportProblem:
+            continue
+    if not readable:
+        raise ImportProblem("The audio search returned an unreadable response. Retry later.")
+    # Keep match failures distinct from JSON failures (ImportProblem is a ValueError).
+    return choose_match(track, [])
+
+
 def download_audio(track, folder, cancelled):
     ytdlp, node = tool_path("yt-dlp"), tool_path("node")
     ffmpeg = str(Path(getattr(sys, "_MEIPASS", Path(shutil.which("ffmpeg") or "").parent)) / ("ffmpeg.exe" if os.name == "nt" else "ffmpeg"))
     common = [ytdlp, "--ignore-config", "--no-plugin-dirs", "--no-cache-dir", "--no-playlist", "--no-warnings", "--no-progress", "--socket-timeout", "15", "--retries", "1", "--extractor-retries", "1", "--js-runtimes", "node:"+node]
-    result = run_tool(common + ["--flat-playlist", "--dump-single-json", "ytsearch5:"+track["artist"]+" "+track["title"]+" audio"], cancelled, 75)
-    try:
-        match = choose_match(track, json.loads(result).get("entries") or [])
-    except (ValueError, TypeError, AttributeError):
-        raise ImportProblem("The audio search returned no readable matches.") from None
+    match = search_audio(track, common, cancelled)
     run_tool(common + ["--ffmpeg-location", ffmpeg, "--max-filesize", "80M", "--format", "bestaudio/best", "--extract-audio", "--audio-format", "mp3", "--audio-quality", "192K", "--output", str(folder/"audio.%(ext)s"), "https://www.youtube.com/watch?v="+match["id"]], cancelled, 300)
     file = folder / "audio.mp3"
     if cancelled.is_set():

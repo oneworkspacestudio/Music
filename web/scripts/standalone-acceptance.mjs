@@ -3,7 +3,7 @@ import {randomBytes,createHash} from 'node:crypto';
 import {mkdir,readFile,writeFile} from 'node:fs/promises';
 import {chromium,expect} from '@playwright/test';
 const exe=process.env.MY_MUSIC_QA_EXE,out=process.env.MY_MUSIC_QA_OUTPUT,root=process.env.MY_MUSIC_QA_DATA,music=process.env.MY_MUSIC_QA_MEDIA;
-if(!exe||!out||!music||!(root?.startsWith('C:/Projects/.cache/music-listening-20261023/')||root?.startsWith('C:/Projects/.cache/music-spotify-20261024/')))throw Error('Use explicit executable/output/media and a new disposable NTFS root');
+if(!exe||!out||!music||!(root?.startsWith('C:/Projects/.cache/music-listening-20261023/')||root?.startsWith('C:/Projects/.cache/music-spotify-20261024/')||root?.startsWith('C:/Projects/.cache/music-spotify-match-20261024/')))throw Error('Use explicit executable/output/media and a new disposable NTFS root');
 await mkdir(root+'/temp',{recursive:true});await mkdir(out,{recursive:true});
 const env={...process.env,TEMP:root+'/temp',TMP:root+'/temp'};for(const key of Object.keys(env))if(key.startsWith('WORKSPACE_OIDC_')||['WORKSPACE_BASE_PATH','WORKSPACE_MUSIC_DIR','WORKSPACE_OWNER_SUBJECT'].includes(key))delete env[key];
 const child=spawn(exe,['--host','127.0.0.1','--port','39127','--config',root+'/private'],{env,windowsHide:true,stdio:['ignore','pipe','pipe']});let log='',browser;child.stdout.on('data',b=>log=(log+b).slice(-20000));child.stderr.on('data',b=>log=(log+b).slice(-20000));const origin='http://localhost:39127';
