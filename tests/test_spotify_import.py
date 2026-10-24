@@ -201,10 +201,15 @@ def test_import_jobs_and_security(tmp_path,monkeypatch):
     # Only explicitly resumed failed/missing work runs again, on the same playlist.
     owner.post('/studio/imports/'+jid+'/start',headers=h,json={'download':False,'retry':True})
     assert finished()['playlist']==row.id and PlaylistTable.count()==1
-    # Interrupted startup is visible and never silently restarts a download.
+    # Accepted work recovers after restart; startup dispatch waits for loaded stores.
     stored=service.load(jid,principal(UserTable.get_by_id(users[0].id)));stored['status']='running';service.save(stored)
     replacement=s.ImportManager(app)
-    assert replacement.load(jid,stored['owner'])['status']=='interrupted'
+    assert replacement.load(jid,stored['owner'])['status']=='queued'
+    replacement.resume_pending()
+    for _ in range(200):
+        if not replacement.events:break
+        time.sleep(.025)
+    assert not replacement.events and replacement.load(jid,stored['owner'])['status']=='partial'
     # A deleted/reused owner account cannot retain its old import capability.
     old=users[0];UserTable.update_one({'id':old.id,'extra':{'musicPrincipal':'0'*64}})
     assert owner.get('/studio/imports/'+jid,headers=h).status_code==401

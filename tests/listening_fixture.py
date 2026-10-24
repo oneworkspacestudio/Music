@@ -16,7 +16,7 @@ def main():
     parser.add_argument("--spotify-fixture", action="store_true")
     args = parser.parse_args()
     root = args.root.resolve()
-    if not str(root).lower().startswith(("c:\\projects\\.cache\\music-listening-20261023\\","c:\\projects\\.cache\\music-spotify-20261024\\","c:\\projects\\.cache\\music-spotify-art-20261024\\")):
+    if not str(root).lower().startswith(("c:\\projects\\.cache\\music-listening-20261023\\","c:\\projects\\.cache\\music-spotify-20261024\\","c:\\projects\\.cache\\music-spotify-art-20261024\\","c:\\projects\\.cache\\music-spotify-queue-20261024\\")):
         raise ValueError("Use a new task-owned fixture directory")
     if root.exists():
         raise ValueError("Fixture root must be new")
@@ -82,10 +82,16 @@ def main():
         spotify_import.public_bytes=lambda url,*args:cover.getvalue() if url==snapshot['artwork'] else original_public_bytes(url,*args)
         def resolve(value):
             spotify_import.playlist_url(value)
-            return copy.deepcopy(snapshot)
+            result=copy.deepcopy(snapshot)
+            suffix=value.rsplit('/',1)[-1]
+            names={'z'*22:'Queue One','y'*22:'Queue Two','x'*22:'Queue Three'}
+            if suffix in names:
+                result['name']=names[suffix];result['source']=value
+                result['tracks']=[{'id':suffix,'title':names[suffix]+' Original','artist':'Fixture Band','duration':65,'status':'pending','hash':None,'message':''}]
+            return result
         def download(track,folder,event):
             # Original generated tone; no provider or owner audio is used.
-            if event.wait(2):
+            if event.wait(14 if track["title"].startswith("Queue One") else 2):
                 raise spotify_import.ImportCancelled()
             import imageio_ffmpeg
             subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(),"-v","error","-f","lavfi","-i","sine=frequency=440:duration=65","-q:a","7",str(folder/'audio.mp3')],check=True,creationflags=subprocess.CREATE_NO_WINDOW)

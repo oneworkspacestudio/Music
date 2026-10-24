@@ -9,8 +9,8 @@ playlist**. Spotify playlist URIs also work. No Spotify account or API key is ne
 The preview shows the tracks Spotify returned and songs already in your library.
 Leave **Download songs missing from my library** checked to find matching audio
 on YouTube and save tagged MP3 files in **Music/Spotify imports**. Uncheck it to
-build the playlist using only songs you already have. Choose **Import and
-download** or **Import from my library** to start.
+build the playlist using only songs you already have. Choose **Queue and
+download** or **Queue from my library** to add it to the queue.
 
 The playlist belongs to your Music account. Open it to play, edit or share it
 with MyAccounts members using the existing view/play sharing controls. The server's
@@ -19,12 +19,17 @@ underlying Music folder keeps its existing shared-library permissions.
 ## Progress and recovery
 
 You can keep listening, leave the import screen or close your browser. The server
-continues working. **Recent imports** shows up to twenty recent jobs for your
-account, with individual song results. One playlist download runs at a time.
+continues working. **Recent imports** shows twenty recent jobs plus all queued
+and running jobs for your account, with individual song results and queue positions.
+Playlists run one at a time, in the order you queue them. Preview and queue more
+playlists while another import runs; the next starts automatically.
 
 **Stop import** stops the current download and keeps songs already added.
 **Resume unfinished songs** continues the same playlist, reusing successful work.
-After a server restart, an interrupted job waits for you to resume it. Failed
+**Remove from queue** pauses a waiting playlist. After a server restart or update,
+accepted queued and running imports automatically continue from saved progress,
+on the same playlists. Explicitly stopped imports stay paused until you resume
+them; previews and completed/failed jobs do not start by themselves. Failed
 matches and unavailable audio stay visible; they are never counted as downloaded.
 Existing files are never overwritten. Each imported track is added once to the
 playlist, in the order received from Spotify.

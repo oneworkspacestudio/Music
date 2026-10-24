@@ -14,6 +14,9 @@ Page ImportSpotify variant=import-page
         Spinner label="Working on your import"
     Checkbox name=download-missing checked=$downloadMissing disabled=$working label="Download songs missing from my library"
     Text variant=muted "Downloads are saved in your Music folder. Audio versions may differ from the Spotify recording."
+  Text variant=muted "Playlists queue in order and resume automatically after Music restarts. Stopped imports stay paused."
+  If condition=$hasQueue
+    Alert "$queueMessage"
   If condition=$error
     Alert tone=error "$error"
   If condition=$connection
@@ -31,11 +34,13 @@ Page ImportSpotify variant=import-page
         Metric label="Ready to play" value=$available
         Metric label="Tracks checked" value=$finished
       Text variant=import-status "$job.message"
+      If condition=$isQueued
+        Text variant=muted "$queuePosition"
       Row variant=import-actions
         If condition=$canStart
           Button variant=primary action=start disabled=$working "$startLabel"
         If condition=$active
-          Button action=cancel disabled=$working "Stop import"
+          Button action=cancel disabled=$working "$cancelLabel"
         If condition=$canResume
           Button variant=primary action=resume disabled=$working "Resume unfinished songs"
         If condition=$hasPlaylist

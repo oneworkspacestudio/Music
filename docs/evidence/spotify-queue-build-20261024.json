@@ -1,0 +1,11 @@
+{
+  "applicationStageMatches": true,
+  "reviewedUISourceMatchesBuild": true,
+  "embeddedUIAssetsMatch": true,
+  "ffmpegRuntimeNameValidated": true,
+  "uiAssets": {
+    "index-CcXe796V.js": "000e26726e049e36f87d45fe1bf69c1de78b670af7072ef42efa679d68d83e57",
+    "index-CkOq5oEc.css": "e531d2c9ab750f6f74ecd8ec09aedcdc9c904f3e69d49bd23e0a25836106dc9b"
+  },
+  "exeSHA256": "73f40020544def64521f3bc8d9d04b88c31ffb9dc8abc25c18fb9c5f0ab2a531"
+}

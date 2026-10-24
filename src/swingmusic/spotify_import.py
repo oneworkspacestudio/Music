@@ -356,13 +356,20 @@ class ImportManager:
     def __init__(self, app):
         from swingmusic.settings import Paths
         self.app, self.lock, self.events = app, threading.RLock(), {}
+        self.ready = False
         self.path = Paths().config_dir / "music-imports.sqlite3"
         with self.database() as db:
             db.execute("CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, owner TEXT NOT NULL, data TEXT NOT NULL)")
-            for jid, raw in db.execute("SELECT id,data FROM jobs").fetchall():
+            if "stop_requested" not in {row[1] for row in db.execute("PRAGMA table_info(jobs)")}:
+                db.execute("ALTER TABLE jobs ADD COLUMN stop_requested INTEGER NOT NULL DEFAULT 0")
+            for jid, raw, stopped in db.execute("SELECT id,data,stop_requested FROM jobs").fetchall():
                 job = json.loads(raw)
-                if job["status"] in ACTIVE:
-                    job.update(status="interrupted", message="Music restarted. Resume to continue unfinished tracks.")
+                if job["status"] in ACTIVE or (job["status"] == "interrupted" and job.get("mode") and job.get("playlist")):
+                    if stopped:
+                        job.update(status="cancelled", message="Import stopped. Added songs are kept; resume to continue.")
+                    else:
+                        job.setdefault("queueOrder", job["created"] * 1_000_000_000)
+                        job.update(status="queued", message="Music restarted. Queued to resume automatically.")
                     db.execute("UPDATE jobs SET data=? WHERE id=?", (json.dumps(job), jid))
 
     @contextmanager
@@ -376,7 +383,37 @@ class ImportManager:
 
     def save(self, job):
         with self.database() as db:
-            db.execute("INSERT INTO jobs VALUES (?,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data", (job["id"], job["owner"], json.dumps(job)))
+            db.execute("INSERT INTO jobs (id,owner,data) VALUES (?,?,?) ON CONFLICT(id) DO UPDATE SET data=excluded.data", (job["id"], job["owner"], json.dumps(job)))
+
+    def pending(self):
+        with self.database() as db:
+            jobs = [json.loads(row[0]) for row in db.execute("SELECT data FROM jobs WHERE stop_requested=0")]
+        return sorted((job for job in jobs if job["status"] == "queued"), key=lambda job: (job["queueOrder"], job["id"]))
+
+    def resume_pending(self):
+        # Called by the server after database migrations and library stores load,
+        # without needing an open browser or an authenticated request.
+        with self.lock:
+            self.ready = True
+            self.dispatch()
+
+    def dispatch(self):
+        # All callers hold the manager lock. Reserve the sole worker before
+        # starting its thread, including while it is waiting to enter work().
+        if not self.ready or self.events:
+            return
+        for job in self.pending():
+            event = threading.Event()
+            self.events[job["id"]] = event
+            job.update(status="running", message="Importing playlist")
+            self.save(job)
+            try:
+                threading.Thread(target=self.work, args=(job["id"], job["owner"], event), daemon=True, name="spotify-import").start()
+                return
+            except RuntimeError:
+                self.events.pop(job["id"], None)
+                job.update(status="failed", message="Could not start this import. Resume to try again.")
+                self.save(job)
 
     def load(self, jid, owner):
         with self.database() as db:
@@ -386,7 +423,10 @@ class ImportManager:
         return json.loads(row[0])
 
     def public(self, job):
-        result = {key: value for key, value in job.items() if key not in ("owner", "user", "playlistKey")}
+        result = {key: value for key, value in job.items() if key not in ("owner", "user", "playlistKey", "queueOrder")}
+        if job["status"] == "queued":
+            with self.lock:
+                result["queuePosition"] = next((index + 1 for index, item in enumerate(self.pending()) if item["id"] == job["id"]), None)
         result["finished"] = sum(t["status"] in ("existing", "downloaded", "missing", "failed") for t in job["tracks"])
         result["available"] = sum(t["status"] in ("existing", "downloaded") for t in job["tracks"])
         return result
@@ -419,8 +459,6 @@ class ImportManager:
                 return self.public(job)
             if retry and job["status"] not in TERMINAL:
                 raise ImportProblem("This import is not ready to resume.")
-            if self.events:
-                raise ImportProblem("Another playlist is importing. Wait for it to finish, then try again.")
             if download:
                 music_root()
             if job["playlist"] is None:
@@ -434,11 +472,31 @@ class ImportManager:
                     with DbEngine.manager() as db:
                         extra=db.execute(select(PlaylistTable.extra).where(PlaylistTable.id==job["playlist"])).scalar()
                     job["playlistKey"] = extra["musicShareKey"]
-            job.update(status="queued", message="Waiting to import", mode="download" if download else "library")
+            with self.database() as db:
+                previous = [json.loads(row[0]).get("queueOrder", 0) for row in db.execute("SELECT data FROM jobs")]
+                db.execute("UPDATE jobs SET stop_requested=0 WHERE id=?", (jid,))
+            order = max(time.time_ns(), max(previous, default=0) + 1)
+            job.update(status="queued", message="Queued. This playlist will start automatically.", mode="download" if download else "library", queueOrder=order)
             self.save(job)
-            event = threading.Event()
-            self.events[jid] = event
-            threading.Thread(target=self.work, args=(jid, owner, event), daemon=True, name="spotify-import").start()
+            self.resume_pending()
+            return self.public(self.load(jid, owner))
+
+    def cancel(self, jid, owner):
+        with self.lock:
+            job = self.load(jid, owner)
+            event = self.events.get(jid)
+            if job["status"] in ACTIVE:
+                # This marker survives stale worker progress writes and a crash
+                # between the stop response and subprocess termination.
+                with self.database() as db:
+                    db.execute("UPDATE jobs SET stop_requested=1 WHERE id=?", (jid,))
+                if event:
+                    event.set()
+                    job["message"] = "Stopping the current download. Added songs are kept."
+                else:
+                    job.update(status="cancelled", message="Removed from queue. Resume when you are ready.")
+                self.save(job)
+                self.dispatch()
             return self.public(job)
 
     def check_owner(self, job):
@@ -549,6 +607,9 @@ class ImportManager:
             with self.app.app_context():
                 with self.lock:
                     job = self.load(jid,owner)
+                    if event.is_set():
+                        raise ImportCancelled()
+                    self.check_owner(job)
                     job.update(status="running",message="Importing playlist")
                     self.save(job)
                 try:
@@ -638,6 +699,7 @@ class ImportManager:
                     self.save(job)
                 event.set()
                 self.events.pop(jid,None)
+                self.dispatch()
 
 
 def manager():
@@ -676,9 +738,11 @@ def import_error(error):
 def imports():
     from swingmusic.listening import principal, current_user
     service=manager()
-    with service.database() as db:
-        rows=db.execute("SELECT data FROM jobs WHERE owner=? ORDER BY rowid DESC LIMIT 20",(principal(current_user),)).fetchall()
-    return {"jobs":[service.public(json.loads(row[0])) for row in rows]}
+    with service.lock:
+        with service.database() as db:
+            rows=db.execute("SELECT data FROM jobs WHERE owner=? ORDER BY rowid DESC",(principal(current_user),)).fetchall()
+        jobs = [json.loads(row[0]) for row in rows]
+        return {"jobs":[service.public(job) for index, job in enumerate(jobs) if index < 20 or job["status"] in ACTIVE]}
 
 
 @imports_api.post("/preview")
@@ -706,13 +770,7 @@ def start(jid):
 @imports_api.post("/<jid>/cancel")
 def cancel(jid):
     from swingmusic.listening import principal, current_user
-    service=manager()
-    with service.lock:
-        job=service.load(jid,principal(current_user))
-        event=service.events.get(jid)
-        if event and job["status"] in ACTIVE:
-            event.set()
-    return {"stopping":bool(event)}
+    return manager().cancel(jid, principal(current_user))
 
 
 @imports_api.post("/<jid>/artwork")

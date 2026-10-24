@@ -87,6 +87,10 @@ def wsgi_loader(target: str):
     # Load all data into memory stores
     load_into_mem()
 
+    # Accepted imports survive a server/update restart and resume only once
+    # the library is ready. Explicitly stopped imports remain paused.
+    app.extensions["spotify_imports"].resume_pending()
+
     # Get host:port from environment for process title
     proc_title = os.environ.get("SWINGMUSIC_PROC_TITLE", "swingmusic")
 

@@ -1,0 +1,25 @@
+{
+  "checks": [
+    {
+      "kind": "playlist",
+      "publicArtworkFound": true,
+      "decoded": "WEBP",
+      "size": [
+        640,
+        640
+      ],
+      "sourceHost": "image-cdn-ak.spotifycdn.com"
+    },
+    {
+      "kind": "track",
+      "publicArtworkFound": true,
+      "decoded": "WEBP",
+      "size": [
+        640,
+        640
+      ],
+      "sourceHost": "image-cdn-ak.spotifycdn.com"
+    }
+  ],
+  "ownerDataUsed": false
+}

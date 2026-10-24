@@ -1,0 +1,11 @@
+{
+  "checks": [
+    "Fresh standalone account creation",
+    "Authorized folder indexing and actual MP3 playback",
+    "Prominent source link",
+    "Sign out and local-password sign in"
+  ],
+  "errors": [],
+  "exeSHA256": "73f40020544def64521f3bc8d9d04b88c31ffb9dc8abc25c18fb9c5f0ab2a531",
+  "syntheticOnly": true
+}
