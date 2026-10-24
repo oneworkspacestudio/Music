@@ -1,0 +1,54 @@
+Page ImportSpotify variant=import-page
+  Row variant=import-heading
+    Icon name=Download size=32
+    Stack variant=import-heading-copy
+      Text variant=eyebrow "BRING YOUR MUSIC ALONG"
+      Heading level=1 "Import from Spotify"
+  Text variant=muted "Paste a public playlist link. Reuse songs in your library or download matching audio from YouTube."
+  Card variant=import-form
+    Field label="Spotify playlist link"
+      Input name=spotify-url label="Spotify playlist link" placeholder="https://open.spotify.com/playlist/…" disabled=$working
+    Row variant=import-form-actions
+      Button variant=primary action=preview disabled=$working "$previewLabel"
+      If condition=$working
+        Spinner label="Working on your import"
+    Checkbox name=download-missing checked=$downloadMissing disabled=$working label="Download songs missing from my library"
+    Text variant=muted "Downloads are saved in your Music folder. Audio versions may differ from the Spotify recording."
+  If condition=$error
+    Alert tone=error "$error"
+  If condition=$connection
+    Alert "$connection"
+  If condition=$job
+    Card variant=import-summary
+      Row variant=import-summary-heading
+        Heading level=2 "$job.name"
+        Badge "$statusLabel"
+      Text variant=muted "$job.notice"
+      Row variant=import-metrics
+        Metric label="Tracks in preview" value=$count
+        Metric label="Ready to play" value=$available
+        Metric label="Tracks checked" value=$finished
+      Text variant=import-status "$job.message"
+      Row variant=import-actions
+        If condition=$canStart
+          Button variant=primary action=start disabled=$working "$startLabel"
+        If condition=$active
+          Button action=cancel disabled=$working "Stop import"
+        If condition=$canResume
+          Button variant=primary action=resume disabled=$working "Resume unfinished songs"
+        If condition=$hasPlaylist
+          Button action=open-playlist "Open playlist"
+      Stack variant=import-tracks
+        For each=$tracks
+          Row variant=import-track
+            Stack variant=import-track-title
+              Text variant=track-title "$item.title"
+              Text variant=muted "$item.artist"
+              If condition=$item.message
+                Text variant=track-message "$item.message"
+            Badge "$item.status"
+  If condition=$hasHistory
+    Section variant=import-history
+      Heading level=2 "Recent imports"
+      For each=$history
+        Button action=select-job value=$item.id "$item.label"

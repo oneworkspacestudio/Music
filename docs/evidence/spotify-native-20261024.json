@@ -1,0 +1,18 @@
+{
+  "checks": [
+    "Exact Windows executable indexes tagged synthetic MP3 from managed Music folder",
+    "Embedded player plays/seeks/pauses real MP3 and persists per-user listening history",
+    "Retained classic APIs cannot delete another account playlist or remove its saved song",
+    "Three independent signed OIDC sessions: read-only sharing, edit denial, unrelated account denial and revocation",
+    "Native embedded local lyrics and responsive phone player",
+    "Original advanced settings retained under authenticated classic entry",
+    "Exact native embedded import UI resolves a public Spotify preview on desktop and phone",
+    "Bundled official downloader and Node runtime hashes and execution verified after native extraction"
+  ],
+  "errors": [],
+  "exeSHA256": "b1831b5f9550db1cfef362f19d8173ef95c76a975e464f5ca1b785f356ab4487",
+  "signedOIDC": true,
+  "syntheticAccountsAndAudioOnly": true,
+  "publicSpotifyMetadataRead": true,
+  "physicalPhone": false
+}

@@ -1,0 +1,20 @@
+{
+  "checks": [
+    "Paste-link validation, metadata preview and existing-library reuse",
+    "Cancel during a synthetic download, keep existing songs, resume into the same playlist and complete",
+    "Downloaded synthetic MP3 indexes and plays from the imported playlist",
+    "Mobile Library entry, reload persistence and no horizontal overflow"
+  ],
+  "errors": [],
+  "syntheticOnly": true,
+  "viewports": [
+    [
+      1440,
+      940
+    ],
+    [
+      390,
+      844
+    ]
+  ]
+}

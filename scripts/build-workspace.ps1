@@ -42,6 +42,9 @@ shutil.copyfile(imageio_ffmpeg.get_ffmpeg_exe(),stage/'ffmpeg.exe')
 '@ | & $py -
 if($LASTEXITCODE){throw 'Client bundling failed'}
 $env:WORKSPACE_FFMPEG=Join-Path $source 'ffmpeg.exe';$env:PYTHONPATH=Join-Path $source 'src'
+$env:WORKSPACE_MUSIC_IMPORT_TOOLS=Join-Path $BuildRoot 'import-tools'
+& $py (Join-Path $repo 'scripts/prepare-import-tools.py') $env:WORKSPACE_MUSIC_IMPORT_TOOLS
+if($LASTEXITCODE){throw 'Import tool verification failed'}
 Push-Location $source
 try {& $py -m PyInstaller --noconfirm --clean workspace.spec;if($LASTEXITCODE){throw 'Music packaging failed'}}finally{Pop-Location}
 Copy-Item (Join-Path $source 'dist/Music.exe') (Join-Path $repo 'dist/Music.exe')

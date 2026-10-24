@@ -13,9 +13,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--client", type=Path, required=True)
+    parser.add_argument("--spotify-fixture", action="store_true")
     args = parser.parse_args()
     root = args.root.resolve()
-    if not str(root).lower().startswith("c:\\projects\\.cache\\music-listening-20261023\\"):
+    if not str(root).lower().startswith(("c:\\projects\\.cache\\music-listening-20261023\\","c:\\projects\\.cache\\music-spotify-20261024\\")):
         raise ValueError("Use a new task-owned fixture directory")
     if root.exists():
         raise ValueError("Fixture root must be new")
@@ -71,6 +72,24 @@ def main():
     from swingmusic.store.general import GeneralStore
     GeneralStore.admin_exists = True;GeneralStore.root_dirs_set = True
     from swingmusic import app_builder
+    if args.spotify_fixture:
+        from swingmusic import spotify_import
+        import copy, subprocess
+        snapshot={"name":"Sunrise essentials","source":"https://open.spotify.com/playlist/"+"a"*22,"notice":"Synthetic public playlist snapshot for acceptance.","tracks":[{"id":"b"*22,"title":"Glass House","artist":"Luna Park","duration":65,"status":"pending","hash":None,"message":""},{"id":"c"*22,"title":"New Sunrise","artist":"Fixture Band","duration":65,"status":"pending","hash":None,"message":""}]}
+        def resolve(value):
+            spotify_import.playlist_url(value)
+            return copy.deepcopy(snapshot)
+        def download(track,folder,event):
+            # Original generated tone; no provider or owner audio is used.
+            if event.wait(2):
+                raise spotify_import.ImportCancelled()
+            import imageio_ffmpeg
+            subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(),"-v","error","-f","lavfi","-i","sine=frequency=440:duration=65","-q:a","7",str(folder/'audio.mp3')],check=True,creationflags=subprocess.CREATE_NO_WINDOW)
+            from mutagen.id3 import ID3,TIT2,TPE1,WOAR
+            tags=ID3();tags.add(TIT2(encoding=3,text=track['title']));tags.add(TPE1(encoding=3,text=track['artist']));tags.add(WOAR(url='https://open.spotify.com/track/'+track['id']));tags.save(folder/'audio.mp3')
+            return folder/'audio.mp3'
+        spotify_import.resolve_playlist=resolve
+        spotify_import.download_audio=download
     app = app_builder.build()
     from flask import request, abort, redirect
     from flask_jwt_extended import create_access_token, set_access_cookies

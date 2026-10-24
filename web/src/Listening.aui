@@ -5,6 +5,7 @@ Page Listening
     Button icon=House label=Home variant=home action=home
     Input name=search placeholder="What do you want to play?" label="Search music" variant=global-search
     Spacer
+    Button icon=Download label="Import playlist" variant=icon action=imports
     Button icon=UsersRound label="Shared with you" variant=icon action=shared
     Button icon=Settings label=Settings variant=icon action=settings
     Button variant=avatar action=account "$initials"

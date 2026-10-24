@@ -1,0 +1,32 @@
+Spotify playlist import components
+
+The Music server remains AGPL-3.0. Import code is part of this fork; Downtify was
+consulted as a behavioral reference and no Downtify source code was copied.
+
+yt-dlp 2026.10.21
+Official Windows x64 standalone executable, source and bundled dependency notices:
+https://github.com/yt-dlp/yt-dlp/releases/tag/2026.10.21
+https://github.com/yt-dlp/yt-dlp/blob/2026.10.21/LICENSE
+https://github.com/yt-dlp/yt-dlp/blob/2026.10.21/THIRD_PARTY_LICENSES.txt
+Project source: Unlicense. The Windows standalone distribution includes
+dependencies under additional licenses; retain its full notices and source.
+SHA256 33121d192d706e62f684a06f80918e3f3a8ba52ac3a65213b6951c39c7d9f555
+
+Node.js 26.8.2 (Windows x64)
+MIT and bundled third-party licenses, with full text in Node-LICENSE.txt:
+https://nodejs.org/dist/v26.8.2/
+https://github.com/nodejs/node/blob/v26.8.2/LICENSE
+SHA256 23062343ad39fc79f12ae39cfb324e93a20ced5f1d342e7b850c148c022ddbca
+
+Mutagen 1.48.1
+GPL-2.0-or-later; full COPYING and source in the release notices/source assets:
+https://pypi.org/project/mutagen/1.48.1/
+https://github.com/quodlibet/mutagen
+
+FFmpeg remains the existing imageio-ffmpeg 0.6.0 / FFmpeg 7.1 distribution.
+Its GPLv3 notices and source links are retained unchanged, alongside all existing
+Swing Music and listening-client component notices.
+
+Spotify provides public metadata only. Audio comes from independently matched
+YouTube results. This app is not affiliated with Spotify or YouTube. Service
+names identify supported inputs and sources.

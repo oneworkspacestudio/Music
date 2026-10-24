@@ -11,6 +11,8 @@ do not automatically become per-track Swing Music permissions.
 
 The current listening preview adds read-only playlist, Liked Songs and library
 view sharing with signed-in MyAccounts members. See [sharing and player details](docs/LISTENING.md).
+Public Spotify playlist import, existing-song matching and tagged audio downloads
+are available from **Import playlist**. See [import and recovery details](docs/SPOTIFY-IMPORT.md).
 
 Workspace installs and supervises the separate executable and registers a
 dedicated MyAccounts client automatically. It supplies secrets through the child

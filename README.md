@@ -17,6 +17,7 @@ Your own music library, powered by Swing Music. Run a standalone player or conne
 - Browse albums, artists and playlists in a three-panel desktop player or a phone layout with a mini-player and bottom navigation.
 - Play, seek, queue, shuffle and repeat your indexed music; read local lyrics and return to recent listening.
 - Share playlists, Liked Songs or your song-library view with MyAccounts members. Recipients can view and play; owners can revoke access.
+- [Import a public Spotify playlist](docs/SPOTIFY-IMPORT.md), reuse songs you have and download matching audio into your library, with progress and resume support.
 - Run the portable Windows server independently with normal local-password sign-in.
 - Use MyAccounts for the connected suite, with ordinary user roles and a specifically assigned owner.
 - Upload music through Drive and play the original files; the library is not copied into a second media store.

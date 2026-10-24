@@ -194,6 +194,8 @@ sqlalchemy==2.0.49
     # via swingmusic (pyproject.toml)
 tabulate==0.10.0
     # via swingmusic (pyproject.toml)
+mutagen==1.48.1
+    # Spotify import metadata tagging
 tinytag==2.2.1
     # via swingmusic (pyproject.toml)
 tqdm==4.67.3

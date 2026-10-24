@@ -367,6 +367,8 @@ def logout():
 
 
 def install(app):
+    from swingmusic.spotify_import import install as install_spotify_import
+    install_spotify_import(app, api)
     for user in UserTable.get_all():
         extra = dict(user.extra or {})
         if not extra.get("workspaceIssuer") and not extra.get("workspaceSubject") and not extra.get("musicPrincipal"):

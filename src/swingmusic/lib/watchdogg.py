@@ -9,7 +9,7 @@ from pathlib import Path
 
 from watchdog.events import PatternMatchingEventHandler
 from watchdog.observers import Observer
-from watchdog.observers.api import BaseObserverSubclassCallable
+from watchdog.observers.api import BaseObserver
 
 from swingmusic import settings
 from swingmusic.config import UserConfig
@@ -32,7 +32,7 @@ class Watcher:
     Contains the methods for initializing and starting watchdog.
     """
 
-    observers: list[BaseObserverSubclassCallable] = []
+    observers: list[BaseObserver] = []
 
     def __init__(self):
         self.observer = Observer()
@@ -135,11 +135,11 @@ def handle_color(albumhash: str):
     entry = LibDataTable.find_one(albumhash, "album")
 
     if entry and entry.color:
-        return
+        return [entry.color]
 
     colors = process_color(albumhash, is_album=True)
 
-    if colors:
+    if not colors:
         return
 
     if entry is None:
@@ -159,6 +159,7 @@ def add_track(filepath: str) -> None:
     Then creates the folder, album and artist objects for the added track and adds them to the store.
     """
 
+    filepath = Path(filepath).resolve().as_posix()
     TrackStore.remove_track_by_filepath(filepath)
 
     config = UserConfig()
@@ -168,11 +169,22 @@ def add_track(filepath: str) -> None:
     if tags is None or tags["bitrate"] == 0 or tags["duration"] == 0:
         return
 
-    TrackTable.insert_one(tags)
+    # A watcher and an explicit import can observe the same completed file.
+    # Upsert by its unique path, retaining existing playback statistics.
+    from sqlalchemy.dialects.sqlite import insert
+    statement = insert(TrackTable).values(**tags)
+    next(TrackTable.execute(statement.on_conflict_do_update(
+        index_elements=[TrackTable.filepath],
+        set_={key: value for key, value in tags.items()
+              if key not in ("id", "lastplayed", "playcount", "playduration")}), commit=True))
     extract_thumb(filepath, tags["albumhash"] + ".webp", overwrite=True)
 
     colors = handle_color(tags["albumhash"])
-    track = Track(**tags)
+    from swingmusic.db.engine import DbEngine
+    from sqlalchemy import select
+    with DbEngine.manager() as db:
+        row = db.execute(select(TrackTable.__table__).where(TrackTable.filepath == filepath)).mappings().one()
+        track = Track(**dict(row), config=config, color=colors[0] if colors else "")
     TrackStore.add_track(track)
 
     # SECTION: Index album

@@ -1,0 +1,23 @@
+{
+  "pythonTests": {
+    "passed": 6,
+    "existingWarnings": 31
+  },
+  "uiBuildPassed": true,
+  "appSourcesMatchNativeStage": true,
+  "embeddedUIAssetsMatchBuild": true,
+  "uiAssets": {
+    "index-CuyCNjwF.js": "c2e54e8b7a777b5d51b1cb2e47133a7c5789630bc89d825078726190c3ebbd2f",
+    "index-CkOq5oEc.css": "e531d2c9ab750f6f74ecd8ec09aedcdc9c904f3e69d49bd23e0a25836106dc9b"
+  },
+  "defender": {
+    "realTimeEnabled": true,
+    "taskPathDetections": 0,
+    "customScanClaimed": false
+  },
+  "limits": [
+    "Unsigned preview",
+    "No physical phone, clean-host or reboot test",
+    "Public Spotify snapshot can omit tracks; no private playlist authentication"
+  ]
+}
