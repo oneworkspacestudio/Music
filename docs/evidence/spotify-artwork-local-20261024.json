@@ -1,0 +1,20 @@
+{
+  "exactTestedBinaryInstalled": true,
+  "identityAndCredentialsRetained": true,
+  "managerVersion": "0.3.0-preview.82",
+  "managerVersionRetained": true,
+  "musicSHA256": "28e567a89dec5bcaab7db1edc443ff1405f1b2163384d4ad31b29ecec4064e41",
+  "normalBackedUpUpdate": true,
+  "otherAppContractsAndPackagesRetained": true,
+  "ownerConfigurationRetained": true,
+  "previousVersion": "3.0.1-workspace.3",
+  "version": "3.0.1-workspace.4",
+  "normalTransactionComplete": true,
+  "localHealth": "ok",
+  "servicesRunning": 26,
+  "exactUIAssetsServed": true,
+  "serviceWorkerIdentityAndGzipMatch": true,
+  "newestRecoveryCopyRetained": true,
+  "taskScratchRemoved": true,
+  "finalSourceTestsPassed": 9
+}
