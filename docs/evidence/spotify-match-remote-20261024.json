@@ -1,0 +1,13 @@
+{
+  "version": "3.0.1-workspace.3",
+  "previousVersion": "3.0.1-workspace.2",
+  "managerVersion": "0.3.0-preview.80",
+  "managerVersionRetained": true,
+  "otherVisibleAppVersionsRetained": true,
+  "normalBackedUpUpdate": true,
+  "allAppsHealthy": true,
+  "newestRecoveryCopyRetained": true,
+  "exactPackageValidatedByNormalUpdater": true,
+  "manualRemoteBinaryHashClaimed": false,
+  "elapsed": "12m 24s"
+}
