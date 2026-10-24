@@ -1,0 +1,28 @@
+{
+  "version": "3.0.1-workspace.2",
+  "previousVersion": "3.0.1-workspace.1",
+  "managerVersion": "0.3.0-preview.80",
+  "managerVersionRetained": true,
+  "selectedOnlyMusic": true,
+  "normalBackedUpUpdate": true,
+  "normalUpdateCompleted": true,
+  "allAppsHealthy": true,
+  "newestRecoveryCopyRetained": true,
+  "otherVisibleAppVersionsRetained": true,
+  "appVersionChanges": [
+    {
+      "before": {
+        "current": "3.0.1-workspace.1",
+        "name": "Music"
+      },
+      "after": {
+        "current": "3.0.1-workspace.2",
+        "name": "Music"
+      }
+    }
+  ],
+  "newImportScreenVisible": true,
+  "ownerSessionRetained": true,
+  "uiError": "",
+  "manuallyHashedRemoteExecutable": false
+}

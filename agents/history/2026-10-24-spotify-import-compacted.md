@@ -64,3 +64,65 @@ not collapse to an empty match. Defender real-time enabled, no task-path detecti
 no completed custom scan claimed. Source/evidence commit and release publication
 follow. C free space recovered to roughly7GB while other work completed; recheck
 against the normal conservative backup requirement after our cache cleanup.
+
+
+## Publication and installation checkpoint
+
+Immutable v3.0.1-workspace.2 published fromb27a079203f36239779accb1637c85bd00da878c;
+all20 public asset sizes/SHA256 match. Public downloaded Music.exe matchesb1831b5f.
+Channel promotion20a878c in Workspace main; default raw index and real credential-free
+Music-only SelectUpdates verified. New notice terms aggregate into existing registered
+SwingMusic-LICENSE path, with individual full notices/source assets also released;
+no new manager package ownership rules needed. Do not retag/rebuild/replace assets.
+
+Main manager80/Music1 selected only Music2 using ApplyMusic2.exe normal suite updater.
+Protected preflight passed after space recovered/own build scratch cleanup. Main
+4.418GB snapshot copying; owner settings/identity and unselected contract checks occur
+after completion. installation-local.log/json track this operation. Do not replay.
+Remote manager80/Music1 fresh Chrome Updates selected only music, accepted one request
+and downloaded Music2. Now tunnel paused for backup/restart; preserve live tab585734099
+(remoteMusic2 in CUA). Before snapshot remoteBeforeMusic2 contains only public app
+version metadata; compare after completion. Do not replay its install POST.
+
+Original build/fixture scratch was removed after native checks. A small fresh
+C:/Projects/.cache/music-spotify-20261024/final-check environment is now running six
+final source tests (including the added Unicode case) during backup waiting time;
+save final-source-tests.log and remove this recreated scratch after its process exits.
+Base Python for remaining standard-library publisher/verification scripts is
+C:/Users/fahim/AppData/Local/Programs/Python/Python312/python.exe. All release artifacts,
+final merged client ZIP and executable are durable under I task directory.
+
+## Delivery complete
+
+Both PCs completed normal protected Music-only updates1 ->2, retaining Workspace80.
+Main receipt verifies exact tested binary, manager, unselected app/package contracts,
+owner configuration and decrypted identity/credentials. Transaction complete,
+all25 local services running, actual JS/CSS and identity/gzip service-worker bytes
+match the tested build, latest recovery copy retained. Standard cleanup removed
+one older automatic backup (~4420MB) and kept older items needing review; no manual
+owner/recovery deletion. Main owner browser displays the new import screen normally.
+
+Remote normal UI reports Update complete, all apps healthy, cleanup removed one
+older copy (~3395MB), newest recovery retained; completed in12m12s. Fresh release
+check confirms Music2 and before/after comparison changes only Music, retaining
+manager80 and other visible app versions. Existing owner session opens new import
+screen without a new account or private fixture. Remote executable was validated
+by the normal updater, not manually hashed from this PC.
+
+Actual secondary installed UI screenshot is privacy-safe (empty library/form),
+docs/screenshots/spotify-import-installed-remote.png. Main DOM/AX and exact served
+assets were verified; Chrome capture of that background tab repeatedly timed out,
+so do not claim a successful main screenshot. Both live Music import tabs are kept
+as deliverables. No real owner playlist preview/download was used as a fixture.
+
+Fresh final source environment also passes all6 tests/31 existing warnings,
+including Unicode matching and repeatable indexing. Setup initially omitted
+explicit build-script Authlib/SCM dependencies; installed them and reran successfully.
+Final test processes stopped. Recreated named C scratch removed after verifying and
+unlinking ten pytest-current symbolic links entirely within that exact scratch;
+no links followed or unrelated/global caches removed. Final cleanup receipt saved.
+
+Sanitized publication, both installation and cleanup receipts are in docs/evidence/
+spotify-*20261024.json. All release artifacts remain immutable at sourceb27a0792;
+final documentation-only commit does not move its tag or rebuild payloads. No
+remaining implementation, publication or deployment work for this request.
