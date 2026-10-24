@@ -1,0 +1,17 @@
+{
+  "normalBackedUpUpdate": true,
+  "updateComplete": true,
+  "allAppsHealthy": true,
+  "newestRecoveryRetained": true,
+  "olderAutomaticBackupRemoved": true,
+  "completedIn": "12m 42s",
+  "managerVersion": "0.3.0-preview.82",
+  "managerVersionRetained": true,
+  "musicVersion": "3.0.1-workspace.5",
+  "previousMusicVersion": "3.0.1-workspace.4",
+  "otherInstalledVersionsRetained": true,
+  "musicOnlySelection": true,
+  "releaseDigestVerifiedByNormalUpdater": true,
+  "actualQueueUIVerified": true,
+  "requestedBlockedPlaylistAccepted": true
+}

@@ -45,3 +45,33 @@ recover only accepted work or the explicitly requested blocked Happy Mix preview
 Do not silently resume all old partial imports. Stop fixtures, inspect links/process
 references then remove named C scratch and retain sanitized receipts. Immutable tag
 must stay on functional source; final delivery docs do not rebuild or retag.
+
+## Delivered
+
+Published immutable5 fromce0b82d8f79c589de1baea347d2f4f65c798c602; all20
+asset sizes/digests verified and anonymous public executable matches exact tested
+SHA256 above. Full channel1806c1d retains all previous promoted releases and
+withholding; default raw with normal updater headers and credential-free real
+Music-only selection pass. No Actions. Final delivery docs do not move the tag.
+
+Main normal backed-up4 ->5 update completed; exact executable/UI/SW/gzip hashes,
+all26 healthy services, manager82/MyAI2, unselected app/package contracts, owner
+configuration and decrypted identities retained. Newest recovery kept, one older
+automatic copy removed; pre-existing cleanup-review items preserved. Secondary
+initial1033/502 was a separate authorized Workspace update finishing; it was
+already82/MyAI2 before our selection. Selected only Music, normal4 ->5 update
+completed12m42s, apps healthy/latest verified recovery retained/one older automatic
+copy removed. Fresh version table compares all previous apps: only Music changed.
+
+Actual new import UI verified both PCs. Accepted the user's previously blocked
+preview once through Queue and download; real download progress reached5 ready/
+5 checked, first track downloaded, still running in background. Old partials were
+left alone. Real main/secondary screenshots successfully captured under artifact
+root, never copied into public repo; sanitized UI/progress/installation receipts
+are docs/evidence/spotify-queue-*20261024.json. Result import tabs remain open.
+Synthetic browser/native/standalone services stopped; no task process references
+remain and named C scratch removed after24 symlinks validated/unlinked. Owner
+libraries, running apps and recovery archives retained. No required implementation,
+release, promotion, installation or cleanup work remains. Background requested
+playlist import may continue after delivery; failed provider matches retain retry
+controls. Do not use owner media/identities as fixtures in future work.

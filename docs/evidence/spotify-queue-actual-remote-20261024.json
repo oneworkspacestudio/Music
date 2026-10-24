@@ -1,0 +1,11 @@
+{
+  "blockingMessageAbsent": true,
+  "hasStopControl": true,
+  "queueExplanation": true,
+  "queueNotice": true,
+  "requestedPlaylistSelected": true,
+  "status": "running",
+  "actualRequestedImportQueued": true,
+  "otherPartialsNotResumed": true,
+  "syntheticOwnerDataAdded": false
+}
