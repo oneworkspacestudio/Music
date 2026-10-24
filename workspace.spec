@@ -5,6 +5,8 @@ from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy
 
 root = Path(SPECPATH)
 ffmpeg = os.environ["WORKSPACE_FFMPEG"]
+if Path(ffmpeg).name.lower() != 'ffmpeg.exe':
+    raise RuntimeError('Stage FFmpeg as ffmpeg.exe to match the import runtime path')
 tools = Path(os.environ["WORKSPACE_MUSIC_IMPORT_TOOLS"])
 for name in ('yt-dlp.exe', 'node.exe'):
     if not (tools/name).is_file():

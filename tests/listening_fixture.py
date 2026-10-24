@@ -16,7 +16,7 @@ def main():
     parser.add_argument("--spotify-fixture", action="store_true")
     args = parser.parse_args()
     root = args.root.resolve()
-    if not str(root).lower().startswith(("c:\\projects\\.cache\\music-listening-20261023\\","c:\\projects\\.cache\\music-spotify-20261024\\")):
+    if not str(root).lower().startswith(("c:\\projects\\.cache\\music-listening-20261023\\","c:\\projects\\.cache\\music-spotify-20261024\\","c:\\projects\\.cache\\music-spotify-art-20261024\\")):
         raise ValueError("Use a new task-owned fixture directory")
     if root.exists():
         raise ValueError("Fixture root must be new")
@@ -76,6 +76,10 @@ def main():
         from swingmusic import spotify_import
         import copy, subprocess
         snapshot={"name":"Sunrise essentials","source":"https://open.spotify.com/playlist/"+"a"*22,"notice":"Synthetic public playlist snapshot for acceptance.","tracks":[{"id":"b"*22,"title":"Glass House","artist":"Luna Park","duration":65,"status":"pending","hash":None,"message":""},{"id":"c"*22,"title":"New Sunrise","artist":"Fixture Band","duration":65,"status":"pending","hash":None,"message":""}]}
+        snapshot['artwork']='https://i.scdn.co/image/'+'d'*40
+        cover=io.BytesIO();Image.new('RGB',(512,512),'#158b65').save(cover,'PNG')
+        original_public_bytes=spotify_import.public_bytes
+        spotify_import.public_bytes=lambda url,*args:cover.getvalue() if url==snapshot['artwork'] else original_public_bytes(url,*args)
         def resolve(value):
             spotify_import.playlist_url(value)
             return copy.deepcopy(snapshot)

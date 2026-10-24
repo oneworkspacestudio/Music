@@ -43,7 +43,10 @@ def playlist_url(value):
     value = value.strip()
     if re.fullmatch(r"spotify:playlist:[A-Za-z0-9]{22}", value):
         return "https://open.spotify.com/playlist/" + value.rsplit(":", 1)[1]
-    p = urlsplit(value)
+    try:
+        p = urlsplit(value)
+    except ValueError:
+        raise ImportProblem("Use an https://open.spotify.com/playlist/… link.") from None
     match = re.fullmatch(r"/(?:intl-[a-z]{2}/)?(?:embed/)?playlist/([A-Za-z0-9]{22})/?", p.path)
     if p.scheme != "https" or p.netloc != "open.spotify.com" or not match or p.fragment:
         raise ImportProblem("Use an https://open.spotify.com/playlist/… link.")
@@ -77,6 +80,49 @@ def entity_from_html(page):
     return entity
 
 
+def artwork_url(entity):
+    sources = []
+    for key, field in (("coverArt", "sources"), ("visualIdentity", "image")):
+        value = entity.get(key)
+        rows = value.get(field) if isinstance(value, dict) else None
+        if isinstance(rows, list):
+            sources.extend(row for row in rows if isinstance(row, dict))
+    sources.sort(key=lambda row: next((n for n in (row.get("height"), row.get("maxHeight")) if type(n) in (int, float)), 0), reverse=True)
+    return next((row["url"] for row in sources if valid_artwork_url(row.get("url"))), None)
+
+
+def valid_artwork_url(value):
+    if not isinstance(value, str) or len(value) > 2048:
+        return False
+    try:
+        p = urlsplit(value)
+    except ValueError:
+        return False
+    hosts = {"i.scdn.co", "image-cdn-fa.spotifycdn.com", "image-cdn-ak.spotifycdn.com"}
+    path = r"/image/[a-fA-F0-9]{20,200}"
+    if p.netloc == "mosaic.scdn.co":
+        path = r"/[0-9]{2,4}/[a-fA-F0-9]{20,1000}"
+    elif p.netloc not in hosts:
+        return False
+    return p.scheme == "https" and not p.query and not p.fragment and bool(re.fullmatch(path, p.path))
+
+
+def artwork_image(url):
+    import io
+    from PIL import Image
+    if not valid_artwork_url(url):
+        raise ImportProblem("Spotify did not provide supported artwork. Try refreshing artwork later.")
+    raw = public_bytes(url, 2_000_000)
+    try:
+        with Image.open(io.BytesIO(raw)) as image:
+            if image.format not in ("JPEG", "PNG", "WEBP") or image.width * image.height > 10_000_000:
+                raise ImportProblem("Spotify artwork could not be read safely.")
+            image.thumbnail((800, 800))
+            return image.convert("RGB")
+    except (OSError, Image.DecompressionBombError) as error:
+        raise ImportProblem("Spotify artwork could not be read. Try refreshing artwork later.") from error
+
+
 def resolve_playlist(value):
     source = playlist_url(value)
     try:
@@ -106,7 +152,7 @@ def resolve_playlist(value):
     if not tracks:
         raise ImportProblem("This playlist has no supported public music tracks.")
     return {"source": source, "name": str(entity.get("title") or entity.get("name") or "Spotify playlist")[:200],
-            "tracks": tracks,
+            "tracks": tracks, "artwork": artwork_url(entity),
             "notice": "Spotify shared this public track list. It may omit private, unavailable or additional tracks in large playlists. Check the preview before importing."}
 
 
@@ -262,7 +308,8 @@ def download_audio(track, folder, cancelled):
     tags.add(WOAR(url="https://open.spotify.com/track/"+track["id"]))
     try:
         entity=entity_from_html(public_bytes("https://open.spotify.com/embed/track/"+track["id"]).decode("utf-8"))
-        date=str(entity.get("releaseDate") or "")
+        date=entity.get("releaseDate") or ""
+        date=str(date.get("isoString") or "") if isinstance(date,dict) else str(date)
         if re.match(r"^\d{4}",date):
             tags.add(TDRC(encoding=3,text=date[:4]))
         album=entity.get("relatedEntityUri") or ""
@@ -273,19 +320,15 @@ def download_audio(track, folder, cancelled):
             title=info.get("title") or info.get("name")
             if isinstance(title,str):
                 tags.add(TALB(encoding=3,text=title[:300]))
-        images=(entity.get("coverArt") or {}).get("sources") or []
-        image=next((i.get("url") for i in images if isinstance(i,dict) and isinstance(i.get("url"),str) and urlsplit(i["url"]).scheme=="https" and urlsplit(i["url"]).netloc=="i.scdn.co"),None)
+        image=artwork_url(entity)
         if image:
             if cancelled.is_set():
                 raise ImportCancelled()
             import io
-            from PIL import Image
-            raw=public_bytes(image,2_000_000)
-            with Image.open(io.BytesIO(raw)) as cover:
-                if cover.width*cover.height<=10_000_000:
-                    cover.thumbnail((600,600))
-                    result=io.BytesIO();cover.convert("RGB").save(result,"JPEG",quality=88)
-                    tags.add(APIC(encoding=3,mime="image/jpeg",type=3,desc="Cover",data=result.getvalue()))
+            with artwork_image(image) as cover:
+                cover.thumbnail((600,600))
+                result=io.BytesIO();cover.save(result,"JPEG",quality=88)
+                tags.add(APIC(encoding=3,mime="image/jpeg",type=3,desc="Cover",data=result.getvalue()))
     except (ImportProblem,requests.RequestException,ValueError,OSError,KeyError,TypeError):
         pass  # Optional cover/album lookup must not discard successfully downloaded audio.
     tags.save(file)
@@ -427,6 +470,77 @@ class ImportManager:
             if trackhash not in hashes:
                 db.execute(update(PlaylistTable).where(PlaylistTable.id==item.id).values(trackhashes=hashes+[trackhash],last_updated=create_new_date()))
 
+    def set_artwork(self, job, event=None):
+        from swingmusic.settings import Paths
+        from swingmusic.db.engine import DbEngine
+        from swingmusic.db.userdata import PlaylistTable
+        from sqlalchemy import text
+        self.check_owner(job)
+        if event and event.is_set():
+            raise ImportCancelled()
+        folder = Paths().playlist_img_path
+        with DbEngine.manager() as db:
+            item = db.execute(select(PlaylistTable).where(PlaylistTable.id==job["playlist"], PlaylistTable.userid==job["user"])).scalar()
+            if item and item.image and (folder / item.image).is_file():
+                return "Existing playlist cover kept."
+        url = job.get("artwork")
+        if not valid_artwork_url(url):
+            entity = entity_from_html(public_bytes(playlist_url(job["source"]).replace("/playlist/", "/embed/playlist/")).decode("utf-8"))
+            url = artwork_url(entity)
+        image = artwork_image(url)
+        try:
+            self.check_owner(job)
+        except BaseException:
+            image.close()
+            raise
+        if event and event.is_set():
+            image.close()
+            raise ImportCancelled()
+        created = []
+        try:
+            with image, DbEngine.manager(commit=True) as db:
+                db.execute(text("BEGIN IMMEDIATE"))
+                item = db.execute(select(PlaylistTable).where(PlaylistTable.id==job["playlist"], PlaylistTable.userid==job["user"])).scalar()
+                if not item or (item.extra or {}).get("musicShareKey")!=job["playlistKey"]:
+                    raise ImportCancelled()
+                # A cover uploaded while metadata was being fetched takes priority.
+                if item.image and (folder / item.image).is_file():
+                    return "Existing playlist cover kept."
+                name = "spotify-"+secrets.token_hex(16)+".webp"
+                for filename, size in ((name, 800), ("thumb_"+name, 250)):
+                    copy = image.copy()
+                    try:
+                        copy.thumbnail((size, size))
+                        with (folder / filename).open("xb") as output:
+                            created.append(folder / filename)
+                            copy.save(output, "WEBP", quality=88)
+                    finally:
+                        copy.close()
+                db.execute(update(PlaylistTable).where(PlaylistTable.id==item.id).values(image=name,settings={**(item.settings or {}),"square_img":True}))
+            return "Playlist artwork imported."
+        except BaseException:
+            for file in created:
+                file.unlink(missing_ok=True)
+            raise
+
+    def refresh_artwork(self, jid, owner):
+        with self.lock:
+            job = self.load(jid, owner)
+            if not job.get("playlist") or job["status"] in ACTIVE:
+                raise ImportProblem("Wait for the import to finish before refreshing artwork.")
+            if self.events:
+                raise ImportProblem("Wait for the current import to finish before refreshing artwork.")
+            try:
+                job["artworkMessage"] = self.set_artwork(job)
+            except requests.RequestException:
+                raise ImportProblem("Could not reach Spotify artwork. Try again later.") from None
+            except OSError:
+                raise ImportProblem("Could not save playlist artwork. Check storage and try again.") from None
+            except ImportCancelled:
+                abort(404)
+            self.save(job)
+            return self.public(job)
+
     def work(self, jid, owner, event):
         from swingmusic.settings import Paths
         from swingmusic.store.tracks import TrackStore
@@ -436,6 +550,12 @@ class ImportManager:
                 with self.lock:
                     job = self.load(jid,owner)
                     job.update(status="running",message="Importing playlist")
+                    self.save(job)
+                try:
+                    job["artworkMessage"] = self.set_artwork(job, event)
+                except (ImportProblem, requests.RequestException, OSError):
+                    job["artworkMessage"] = "Playlist artwork unavailable. Use Refresh artwork to try again."
+                with self.lock:
                     self.save(job)
                 for index in range(len(job["tracks"])):
                     if event.is_set():
@@ -593,3 +713,9 @@ def cancel(jid):
         if event and job["status"] in ACTIVE:
             event.set()
     return {"stopping":bool(event)}
+
+
+@imports_api.post("/<jid>/artwork")
+def refresh_artwork(jid):
+    from swingmusic.listening import principal, current_user
+    return manager().refresh_artwork(jid, principal(current_user))

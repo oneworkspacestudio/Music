@@ -7,6 +7,49 @@ from types import SimpleNamespace
 import pytest
 
 
+def test_artwork_sources_and_limits(monkeypatch):
+    from swingmusic import spotify_import as s
+    import io
+    from PIL import Image
+    cover='https://i.scdn.co/image/'+'a'*40
+    track='https://image-cdn-fa.spotifycdn.com/image/'+'b'*40
+    assert s.artwork_url({'coverArt':{'sources':[{'url':cover}]}})==cover
+    assert s.artwork_url({'visualIdentity':{'image':[{'url':track,'maxHeight':640}]}})==track
+    assert s.artwork_url({'visualIdentity':None,'coverArt':[]}) is None
+    for bad in ['http://i.scdn.co/image/'+'a'*40,'https://user@i.scdn.co/image/'+'a'*40,
+                'https://i.scdn.co.evil.test/image/'+'a'*40,'https://127.0.0.1/image/'+'a'*40,
+                'https://i.scdn.co:443/image/'+'a'*40,'https://[bad','file:///image/'+'a'*40]:
+        assert not s.valid_artwork_url(bad)
+    assert s.valid_artwork_url('https://mosaic.scdn.co/640/'+'a'*160)
+    raw=io.BytesIO();Image.new('RGB',(900,600),'#318e5f').save(raw,'PNG')
+    monkeypatch.setattr(s,'public_bytes',lambda url,limit:raw.getvalue())
+    with s.artwork_image(track) as image:assert image.size==(800,533)
+    monkeypatch.setattr(s,'public_bytes',lambda *_:b'<html>Not artwork</html>')
+    with pytest.raises(s.ImportProblem,match='could not be read'):s.artwork_image(track)
+
+
+def test_download_embeds_visual_identity_artwork(tmp_path,monkeypatch):
+    from swingmusic import spotify_import as s
+    from PIL import Image
+    from mutagen.mp3 import MP3
+    import io,subprocess,imageio_ffmpeg
+    raw=io.BytesIO();Image.new('RGB',(400,400),'#54389e').save(raw,'PNG')
+    entity={'releaseDate':{'isoString':'2026-10-01T00:00:00Z'},'visualIdentity':{'image':[{'url':'https://image-cdn-fa.spotifycdn.com/image/'+'a'*40,'maxHeight':400}]}}
+    page='<script id="__NEXT_DATA__">'+json.dumps({'props':{'pageProps':{'state':{'data':{'entity':entity}}}}})+'</script>'
+    monkeypatch.setattr(s,'public_bytes',lambda url,*_:page.encode() if '/embed/' in url else raw.getvalue())
+    monkeypatch.setattr(s,'tool_path',lambda *_:'synthetic-tool')
+    def run(args,*_):
+        if args[-1].startswith('ytsearch'):
+            return json.dumps({'entries':[{'id':'abcdefghijk','title':'Fixture Song','uploader':'Fixture Artist - Topic','duration':2}]})
+        subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(),'-v','error','-f','lavfi','-i','sine=frequency=440:duration=2','-q:a','5',str(tmp_path/'audio.mp3')],check=True)
+        return ''
+    monkeypatch.setattr(s,'run_tool',run)
+    file=s.download_audio({'id':'a'*22,'title':'Fixture Song','artist':'Fixture Artist','duration':2},tmp_path,threading.Event())
+    tags=MP3(file).tags
+    assert len(tags.getall('APIC'))==1 and str(tags['TDRC'])=='2026'
+    with Image.open(io.BytesIO(tags.getall('APIC')[0].data)) as image:assert image.format=='JPEG' and image.size==(400,400)
+
+
 def test_rare_song_search_and_failure_messages(monkeypatch):
     from swingmusic import spotify_import as s
     track={'title':'My Only Only','artist':'Fortune The Voice','duration':173}
@@ -89,6 +132,11 @@ def test_import_jobs_and_security(tmp_path,monkeypatch):
     item=SimpleNamespace(trackhash='f'*16,title='Existing Song',artists=[{'name':'Test Artist'}],duration=60,image='test.webp',album='Fixture',albumhash='e'*16,color='#123456',date=2026,explicit=False,last_mod=1)
     TrackStore.trackhashmap={item.trackhash:SimpleNamespace(get_best=lambda:item)}
     snapshot={'name':'Fixture playlist','source':'https://open.spotify.com/playlist/'+'a'*22,'notice':'Synthetic metadata', 'tracks':[{'id':'b'*22,'title':'Existing Song','artist':'Test Artist','duration':60,'hash':None,'status':'pending','message':''},{'id':'c'*22,'title':'Missing Song','artist':'Test Artist','duration':60,'hash':None,'status':'pending','message':''}]}
+    import io
+    from PIL import Image
+    cover=io.BytesIO();Image.new('RGB',(400,400),'#167953').save(cover,'PNG')
+    snapshot['artwork']='https://i.scdn.co/image/'+'a'*40
+    monkeypatch.setattr(s,'public_bytes',lambda *_:cover.getvalue())
     import copy
     monkeypatch.setattr(s,'resolve_playlist',lambda value:copy.deepcopy(snapshot))
     app=Flask(__name__);app.config.update(JWT_SECRET_KEY='synthetic-test-signing-key-only-32-chars',JWT_VERIFY_SUB=False)
@@ -132,6 +180,24 @@ def test_import_jobs_and_security(tmp_path,monkeypatch):
     with DbEngine.manager() as db:
         row=db.execute(__import__('sqlalchemy').select(PlaylistTable)).scalar()
     assert row.userid==users[0].id and row.trackhashes==[item.trackhash]
+    assert row.image and (Paths().playlist_img_path/row.image).is_file()
+    assert (Paths().playlist_img_path/('thumb_'+row.image)).is_file()
+    assert other.post('/studio/imports/'+jid+'/artwork',headers=headers[1],json={}).status_code==404
+    assert owner.post('/studio/imports/'+jid+'/artwork',headers={k:v for k,v in h.items() if k!='X-Music-CSRF'},json={}).status_code==403
+    # Repair a legacy job without re-downloading audio or replacing its playlist.
+    stored=service.load(jid,principal(UserTable.get_by_id(users[0].id)));stored.pop('artwork',None);service.save(stored)
+    with DbEngine.manager(commit=True) as db:
+        db.execute(__import__('sqlalchemy').update(PlaylistTable).where(PlaylistTable.id==row.id).values(image=None))
+    entity={'coverArt':{'sources':[{'url':'https://i.scdn.co/image/'+'a'*40}]}}
+    page='<script id="__NEXT_DATA__">'+json.dumps({'props':{'pageProps':{'state':{'data':{'entity':entity}}}}})+'</script>'
+    monkeypatch.setattr(s,'public_bytes',lambda url,*_:page.encode() if '/embed/' in url else cover.getvalue())
+    repaired=owner.post('/studio/imports/'+jid+'/artwork',headers=h,json={})
+    assert repaired.status_code==200 and 'imported' in repaired.get_json()['artworkMessage']
+    with DbEngine.manager() as db:updated=db.execute(__import__('sqlalchemy').select(PlaylistTable)).scalar()
+    assert updated.image!=row.image and updated.trackhashes==row.trackhashes
+    again=owner.post('/studio/imports/'+jid+'/artwork',headers=h,json={})
+    assert 'kept' in again.get_json()['artworkMessage']
+
     # Only explicitly resumed failed/missing work runs again, on the same playlist.
     owner.post('/studio/imports/'+jid+'/start',headers=h,json={'download':False,'retry':True})
     assert finished()['playlist']==row.id and PlaylistTable.count()==1

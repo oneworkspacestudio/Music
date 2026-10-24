@@ -58,6 +58,13 @@ duration checks still apply. Search-response errors and unavailable matches have
 distinct messages. After updating, use **Resume unfinished songs** on an existing
 partial import; completed songs stay in the same playlist.
 
+Playlist covers are copied into Music's private image storage during import.
+Track covers use Spotify's current public artwork metadata and are embedded in
+newly downloaded MP3s. To repair the missing playlist cover on an older import,
+select it under Recent imports and choose **Refresh artwork**. This saves only
+the cover, retains existing songs and playlist identity, and keeps a custom cover
+if one is already present. Unavailable artwork does not discard downloaded audio.
+
 ## Engineering checks
 
 Imports use the existing signed account identity, same-origin/CSRF protection

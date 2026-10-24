@@ -14,6 +14,7 @@ export function SpotifyImports({api,refresh,onOpen}:any){
   try{
    if(action==='preview'){const value=await api('/imports/preview','POST',{url:link});if(mounted.current&&generation===serial.current)remember(value)}
    else if(action==='start'||action==='resume'){const value=await api('/imports/'+job.id+'/start','POST',{download,retry:action==='resume'});if(mounted.current&&generation===serial.current)remember(value)}
+   else if(action==='refresh-artwork'){const value=await api('/imports/'+job.id+'/artwork','POST',{});if(mounted.current&&generation===serial.current){remember(value);await refresh()}}
    else if(action==='cancel'){await api('/imports/'+job.id+'/cancel','POST',{});if(mounted.current)setConnection('Stopping the current download. Added songs will be kept.')}
   }catch(e:any){if(mounted.current){setError(e.message);if(action==='start'||action==='resume'){try{remember(await api('/imports/'+job.id))}catch{setConnection('The request may have been received. Reopen Imports to check its status before trying again.')}}}}
   finally{locked.current=false;if(mounted.current)setWorking(false)}
@@ -21,6 +22,6 @@ export function SpotifyImports({api,refresh,onOpen}:any){
  const choose=(id:string)=>{serial.current++;setJob(history.find(j=>j.id===id));setError('');setConnection('')};
  const onAction=(action:string)=>{if(action==='open-playlist'){onOpen(job.playlist);return}void mutate(action)};
  const running=active(job),canResume=job&&['partial','cancelled','interrupted','failed'].includes(job.status);
- const data={job,history:history.map(j=>({id:j.id,label:j.name+' · '+j.status})),hasHistory:history.length>0,tracks:job?.tracks||[],count:job?.tracks.length||0,available:job?.available||0,finished:job?.finished||0,statusLabel:job?.status||'',error,connection,working,downloadMissing:download,previewLabel:working?'Please wait…':'Preview playlist',canStart:job?.status==='preview',startLabel:download?'Import and download':'Import from my library',active:running,canResume,hasPlaylist:!!job?.playlist};
+ const data={job,history:history.map(j=>({id:j.id,label:j.name+' · '+j.status})),hasHistory:history.length>0,tracks:job?.tracks||[],count:job?.tracks.length||0,available:job?.available||0,finished:job?.finished||0,statusLabel:job?.status||'',error,connection,working,downloadMissing:download,previewLabel:working?'Please wait…':'Preview playlist',canStart:job?.status==='preview',startLabel:download?'Import and download':'Import from my library',active:running,canResume,hasPlaylist:!!job?.playlist,canRefreshArtwork:!!job?.playlist&&!running};
  return h(UI.Provider,{value:{importLink:link,setImportLink:setLink,setImportDownload:setDownload,onValueAction:choose}},h(ImportSpotify,{data,onAction}));
 }

@@ -24,6 +24,8 @@ Page ImportSpotify variant=import-page
         Heading level=2 "$job.name"
         Badge "$statusLabel"
       Text variant=muted "$job.notice"
+      If condition=$job.artworkMessage
+        Text variant=muted "$job.artworkMessage"
       Row variant=import-metrics
         Metric label="Tracks in preview" value=$count
         Metric label="Ready to play" value=$available
@@ -38,6 +40,8 @@ Page ImportSpotify variant=import-page
           Button variant=primary action=resume disabled=$working "Resume unfinished songs"
         If condition=$hasPlaylist
           Button action=open-playlist "Open playlist"
+        If condition=$canRefreshArtwork
+          Button action=refresh-artwork disabled=$working "Refresh artwork"
       Stack variant=import-tracks
         For each=$tracks
           Row variant=import-track
